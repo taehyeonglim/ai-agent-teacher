@@ -316,3 +316,42 @@ footer.credit {
   aspect-ratio: 3 / 2;
   object-fit: cover;
 }
+
+/* ----- 복기 화면 ----- */
+.review-item {
+  background: var(--paper-card, #fffdf6);
+  border: 1px solid var(--ink-100, #ddd2b2);
+  border-radius: 10px;
+  padding: var(--space-5, 20px);
+  margin: 0 0 var(--space-4, 16px);
+}
+.review-item.regret {
+  border-left: 4px solid var(--brass-600, #b8860b);
+}
+.review-meta {
+  font-size: 0.8rem;
+  color: var(--ink-400, #8c7f66);
+  margin-bottom: 6px;
+}
+.review-prompt {
+  font-weight: 700;
+  color: var(--ink-800, #3a3226);
+  margin-bottom: 8px;
+}
+.axis-chips { margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.axis-chip {
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ink-100, #ddd2b2);
+  color: var(--ink-500, #6f634e);
+  background: var(--paper-50, #fffdf6);
+}
+.axis-chip.pos { border-color: var(--olive-200, #cdd3ad); background: var(--olive-100, #e4e8d6); color: var(--olive-800, #3d451f); }
+.axis-chip.neg { border-color: #e5c4b8; background: var(--wax-red-100, #f0d9cf); color: var(--wax-red-700, #7a2e22); }
+.review-note {
+  margin: 10px 0 0;
+  font-size: 0.88rem;
+  color: var(--ink-600, #5c5140);
+}
+.review-note.risk { color: var(--wax-red-700, #7a2e22); }

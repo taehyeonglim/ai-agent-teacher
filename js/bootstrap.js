@@ -125,6 +125,49 @@
     actions.appendChild(btn('계속', 'btn btn-primary', function () { engine.continue_(); }));
   }
 
+  var AXIS_LABEL = {
+    define: 'Define 정의', design: 'Design 설계', delegate: 'Delegate 위임',
+    detect: 'Detect 탐지', decide: 'Decide 결정', disclose: 'Disclose 공개',
+  };
+
+  // 복기 화면: 한 학기 동안의 결정을 되짚는다. 점수 대신 축 영향과 되돌아볼 지점만 보여 준다.
+  function showReview(state) {
+    var items = Review.buildReview(state, data);
+    var rows = items.map(function (it, idx) {
+      var chips = Object.keys(it.d).map(function (a) {
+        var v = it.d[a];
+        return '<span class="axis-chip ' + (v > 0 ? 'pos' : v < 0 ? 'neg' : '') + '">' +
+          esc(AXIS_LABEL[a] || a) + ' ' + (v > 0 ? '+' + v : v) + '</span>';
+      }).join('');
+      var notes = '';
+      if (it.regret) {
+        var weak = it.weakAxes.map(function (a) { return AXIS_LABEL[a] || a; }).join(', ');
+        notes += '<p class="review-note">되돌아볼 지점 — ' + esc(weak) + ' 관점에서 다른 길이 있었을지 생각해 보세요.</p>';
+      }
+      if (it.riskFlags.length) {
+        notes += '<p class="review-note risk">이 선택의 흔적은 7월의 사건으로 이어졌습니다.</p>';
+      }
+      return '<div class="review-item' + (it.regret ? ' regret' : '') + '">' +
+        '<div class="review-meta">' + esc(it.chapter.month) + ' · ' + esc(it.chapter.title) +
+        ' · 결정 ' + (idx + 1) + '</div>' +
+        '<div class="review-prompt">' + esc(it.prompt) + '</div>' +
+        '<div class="chosen">▸ ' + esc(it.choiceText) + '</div>' +
+        '<div class="axis-chips">' + chips + '</div>' + notes +
+        '</div>';
+    }).join('');
+    var regretCount = items.filter(function (it) { return it.regret; }).length;
+    var actions = screen(
+      '<div class="screen review-screen">' +
+      '<div class="kicker">복기 — 한 학기의 결정들</div>' +
+      '<h2>' + items.length + '번의 결정, 되돌아볼 지점 ' + regretCount + '곳</h2>' +
+      '<p class="lead">어떤 선택이 틀렸다는 뜻이 아닙니다. 같은 상황이 다시 온다면 어디에 승인 지점을 둘지, 한 번 더 생각해 볼 자리입니다.</p>' +
+      rows +
+      '<div class="actions"></div>' +
+      '</div>'
+    );
+    actions.appendChild(btn('결과로 돌아가기', 'btn btn-primary', function () { showEnding(state); }));
+  }
+
   function showEnding(state) {
     var endings = data.endings || { prescriptions: {}, titles: {} };
     var maxPerAxis = data.maxPerAxis || Scoring.AXES.reduce(function (m, a) { m[a] = 10; return m; }, {});
@@ -146,6 +189,7 @@
       '<footer class="credit">6D 모델: UNESCO(2024)·EU AI Act 제4조·OECD를 종합한 임태형(전주교육대학교)의 재구성 실천 모델 (공인 프레임워크 아님)</footer>' +
       '</div>'
     );
+    actions.appendChild(btn('복기하기 — 나의 결정 되돌아보기', 'btn', function () { showReview(state); }));
     actions.appendChild(btn('다시 하기', 'btn btn-primary', function () { engine.reset(); showTitle(); }));
   }
 
