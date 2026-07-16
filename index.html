@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>위임의 기술 — 6D로 살아남는 한 학기</title>
+<meta name="description" content="AI 시대 교사의 6D 역량(Define·Design·Delegate·Detect·Decide·Disclose)을 훈련하는 시뮬레이션 게임">
+<link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+<noscript>이 게임은 자바스크립트가 필요합니다. 브라우저 설정에서 자바스크립트를 켜 주세요.</noscript>
+<div id="app" aria-live="polite"></div>
+
+<script>
+// 전역 오류 → 명시적 오류 화면 (빈 화면 금지)
+window.addEventListener('error', function (e) {
+  var app = document.getElementById('app');
+  if (!app) return;
+  app.innerHTML =
+    '<div class="error-screen">' +
+    '<h1>문제가 생겼어요</h1>' +
+    '<p>게임을 불러오는 중 오류가 발생했습니다. 새로고침해 주세요.</p>' +
+    '<pre>' + String(e.message || e.error || '알 수 없는 오류') + '</pre>' +
+    '</div>';
+});
+</script>
+
+<!-- 로드 순서 고정: scoring → engine → 데이터 네임스페이스 → 챕터 → 엔딩 → 부트스트랩 -->
+<script src="js/scoring.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/data/chapters.js"></script>
+<script src="js/data/chapter1.js"></script>
+<script src="js/data/chapter2.js"></script>
+<script src="js/data/chapter3.js"></script>
+<script src="js/data/chapter4.js"></script>
+<script src="js/data/chapter5.js"></script>
+<script src="js/data/endings.js"></script>
+<script src="js/bootstrap.js"></script>
+</body>
+</html>
