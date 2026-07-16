@@ -299,3 +299,20 @@ footer.credit {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* ----- 장면 삽화 ----- */
+.scene-art {
+  margin: 0 0 var(--space-5, 20px);
+  border: 1px solid var(--ink-100, #ddd2b2);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--paper-sunken, #e9dfc2);
+  box-shadow: 0 1px 3px rgba(43, 36, 29, 0.10);
+}
+.scene-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}

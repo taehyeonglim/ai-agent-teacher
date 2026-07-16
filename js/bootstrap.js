@@ -15,6 +15,14 @@
     }).join('');
   }
 
+  // 삽화: art 매핑에 있으면 <img> 태그 문자열 반환, 로드 실패 시 자기 자신을 숨긴다.
+  function artTag(key) {
+    var src = (data.art || {})[key];
+    if (!src) return '';
+    return '<div class="scene-art"><img src="' + esc(src) + '" alt="" loading="lazy" ' +
+      'onerror="this.parentNode.removeChild(this)"></div>';
+  }
+
   var SPEAKER_LABEL = {
     narrator: '', onsaemi: '온새미', student: '학생', parent: '학부모',
     colleague: '서지원 부장', principal: '교감',
@@ -76,6 +84,7 @@
       '<div class="screen intro-screen">' +
       '<div class="kicker">' + esc(ch.month) + '</div>' +
       '<h2>' + esc(ch.title) + '</h2>' +
+      artTag(ch.id + ':intro') +
       paras(ch.intro) +
       '<div class="actions"></div>' +
       '</div>'
@@ -89,6 +98,7 @@
     var actions = screen(
       '<div class="screen scene-screen">' +
       '<div class="chapter-tag">' + esc(view.chapter.month) + ' · ' + esc(view.chapter.title) + '</div>' +
+      artTag(view.sceneId) +
       speakerTag(scene.speaker) +
       paras(scene.text) +
       (isDecision ? '<div class="prompt">' + esc(scene.prompt) + '</div>' : '') +
