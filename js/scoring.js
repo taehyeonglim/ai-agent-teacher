@@ -103,6 +103,12 @@
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" role="img" aria-label="6축 역량 레이더 차트"><style>.radar-grid{fill:none;stroke:currentColor;stroke-opacity:.18}.radar-spoke{stroke:currentColor;stroke-opacity:.12}.radar-data{fill:var(--olive-600, #6b7a3f);fill-opacity:.25;stroke:var(--olive-600, #6b7a3f);stroke-width:2}.radar-label{fill:currentColor;font:12px sans-serif}</style>${grid}${spokes}<polygon class="radar-data" points="${pointsString(values, center, radius)}" />${labels}</svg>`;
   }
 
+  // 무분별 위임을 나타내는 시나리오 플래그 — 3개 이상이면 점수와 무관하게 위임러 판정
+  const RECKLESS_FLAGS = [
+    'no_goal_defined', 'sources_unchecked', 'no_review_step', 'error_ignored',
+    'roster_leaked', 'auto_send_enabled', 'promise_unchecked', 'grading_delegated',
+  ];
+
   function isStrictWeakest(normalized, axis) {
     const axisValue = valueOf(normalized, axis);
     return AXES.every((otherAxis) => otherAxis === axis || axisValue < valueOf(normalized, otherAxis));
@@ -118,8 +124,9 @@
     } else if (valueOf(scores, 'delegate') <= 30
       && activeFlags.filter((flag) => typeof flag === 'string' && flag.startsWith('fatigue_')).length >= 2) {
       title = '고독한 장인';
-    } else if (valueOf(scores, 'delegate') >= 70
-      && (valueOf(scores, 'detect') <= 40 || valueOf(scores, 'decide') <= 40)) {
+    } else if ((valueOf(scores, 'delegate') >= 70
+      && (valueOf(scores, 'detect') <= 40 || valueOf(scores, 'decide') <= 40))
+      || activeFlags.filter((flag) => RECKLESS_FLAGS.indexOf(flag) !== -1).length >= 3) {
       title = '브레이크 없는 위임러';
     } else if (isStrictWeakest(scores, 'disclose')) {
       title = '그림자 속 혁신가';

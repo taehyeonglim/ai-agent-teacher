@@ -72,6 +72,12 @@ test('칭호: delegate≥70 + detect≤40 → 브레이크 없는 위임러', ()
   assert.strictEqual(r.title, '브레이크 없는 위임러');
 });
 
+test('칭호: 무분별 위임 플래그 3개 이상 → 브레이크 없는 위임러 (점수 무관)', () => {
+  const zeroed = norm({ define: 0, design: 0, delegate: 0, detect: 0, decide: 0, disclose: 0 });
+  const r = Scoring.evaluate(zeroed, ['roster_leaked', 'auto_send_enabled', 'grading_delegated'], ENDINGS);
+  assert.strictEqual(r.title, '브레이크 없는 위임러');
+});
+
 test('칭호: disclose 단독 최저 → 그림자 속 혁신가', () => {
   const r = Scoring.evaluate(norm({ disclose: 10 }), [], ENDINGS);
   assert.strictEqual(r.title, '그림자 속 혁신가');

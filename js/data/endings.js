@@ -50,12 +50,15 @@
     }
   };
 
+  // 축별 만점 기준 — 사건(ch5_ev_*) 없이 진행한 모범 경로 기준으로 튜닝.
+  // 사건 대응으로 추가 득점한 플레이어는 100에서 클램프된다.
+  // 이론 최대(tools/validate.js): define 9, design 16, delegate 5, detect 8, decide 14, disclose 14
   window.GAME_DATA.maxPerAxis = {
-    define: 12,
-    design: 12,
-    delegate: 12,
-    detect: 12,
+    define: 9,
+    design: 14,
+    delegate: 5,
+    detect: 8,
     decide: 12,
-    disclose: 12
+    disclose: 8
   };
 })();
