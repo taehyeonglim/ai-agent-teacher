@@ -19,7 +19,7 @@
   function artTag(key) {
     var src = (data.art || {})[key];
     if (!src) return '';
-    return '<div class="scene-art"><img src="' + esc(src) + '" alt="" loading="lazy" ' +
+    return '<div class="scene-art"><img src="' + esc(src) + '" alt="" decoding="async" ' +
       'onerror="this.parentNode.removeChild(this)"></div>';
   }
 
