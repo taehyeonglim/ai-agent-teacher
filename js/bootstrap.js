@@ -35,9 +35,10 @@
 
   var engine = Engine.create(data, {
     render: function (view) {
-      if (view.kind === 'chapterIntro') return showIntro(view);
-      if (view.kind === 'scene') return showScene(view);
-      if (view.kind === 'choiceResult') return showResult(view);
+      if (view.kind === 'chapterIntro') showIntro(view);
+      else if (view.kind === 'scene') showScene(view);
+      else if (view.kind === 'choiceResult') showResult(view);
+      prefetchArt(view);
     },
     onEnd: function (state) { showEnding(state); },
   });
@@ -93,13 +94,32 @@
     var saved = Engine.load();
     if (saved && saved.phase === 'ended') {
       actions.appendChild(btn('지난 결과 보기', 'btn', function () { engine.start(saved); }));
-      actions.appendChild(btn('처음부터', 'btn btn-primary', function () { engine.start(); }));
+      actions.appendChild(btn('처음부터', 'btn btn-primary', function () { showOnboarding(); }));
     } else if (saved) {
       actions.appendChild(btn('이어하기', 'btn btn-primary', function () { engine.start(saved); }));
-      actions.appendChild(btn('처음부터', 'btn', function () { engine.start(); }));
+      actions.appendChild(btn('처음부터', 'btn', function () { showOnboarding(); }));
     } else {
-      actions.appendChild(btn('시작하기', 'btn btn-primary', function () { engine.start(); }));
+      actions.appendChild(btn('시작하기', 'btn btn-primary', function () { showOnboarding(); }));
     }
+  }
+
+  // 새 게임 온보딩: 훈련 대상인 6D를 30초 안에 소개한다.
+  function showOnboarding() {
+    var cards = D6_DEFS.map(function (def, i) {
+      return '<div class="d6-card"><span class="d6-num">' + (i + 1) + '</span>' +
+        '<b>' + esc(def[0]) + '</b><p>' + esc(def[1]) + '</p></div>';
+    }).join('');
+    var actions = screen(
+      '<div class="screen onboarding-screen">' +
+      '<div class="kicker">시작하기 전에 — 30초</div>' +
+      '<h2>여섯 가지 질문, 6D</h2>' +
+      '<p class="lead">한 학기 동안 당신이 내리는 모든 결정은 이 여섯 역량 위에 기록됩니다. 외울 필요는 없어요 — 방학식 날 다시 만나게 됩니다.</p>' +
+      '<div class="d6-grid">' + cards + '</div>' +
+      '<div class="actions"></div>' +
+      '<footer class="credit">6D 모델: UNESCO(2024)·EU AI Act 제4조·OECD를 종합한 임태형(전주교육대학교)의 재구성 실천 모델 (공인 프레임워크 아님)</footer>' +
+      '</div>'
+    );
+    actions.appendChild(btn('한 학기 시작하기', 'btn btn-primary', function () { engine.start(); }));
   }
 
   function showIntro(view) {
@@ -156,6 +176,49 @@
     detect: 'Detect 탐지', decide: 'Decide 결정', disclose: 'Disclose 공개',
   };
 
+  // 6D 정의 — 원천 강의 덱의 문구 그대로 (온보딩·결과 화면 공용)
+  var D6_DEFS = [
+    ['Define 정의', '교육목표와 인간이 책임질 영역을 정의한다'],
+    ['Design 설계', '인간과 AI의 전체 업무 흐름을 설계한다'],
+    ['Delegate 위임', 'AI에 맡길 업무·데이터·도구·권한을 정한다'],
+    ['Detect 탐지', '오류·편향·개인정보·저작권·과잉의존을 탐지한다'],
+    ['Decide 결정', '승인·수정·중단·재검토를 인간이 결정한다'],
+    ['Disclose 공개', 'AI 사용·출처·과정·책임자를 투명하게 밝힌다'],
+  ];
+
+  var TITLE_ORDER = ['신중한 오케스트레이터', '고독한 장인', '브레이크 없는 위임러',
+    '그림자 속 혁신가', '믿음의 항해사', '성장하는 설계자'];
+
+  // 칭호 도감 — 만난 칭호를 localStorage에 누적한다.
+  function recordTitle(title) {
+    try {
+      var seen = JSON.parse(localStorage.getItem('wiim_titles_v1') || '[]');
+      if (seen.indexOf(title) < 0) seen.push(title);
+      localStorage.setItem('wiim_titles_v1', JSON.stringify(seen));
+      return seen;
+    } catch (e) { return [title]; }
+  }
+
+  // 다음에 나올 수 있는 장면의 삽화를 미리 받아 전환 지연을 없앤다.
+  function prefetchArt(view) {
+    try {
+      var ids = [];
+      if (view.kind === 'scene') {
+        var s = view.scene || {};
+        if (s.next) ids.push(s.next);
+        (s.choices || []).forEach(function (c) { ids.push(c.next); });
+      } else if (view.kind === 'choiceResult') {
+        ids.push(view.choice.next);
+      } else if (view.kind === 'chapterIntro') {
+        ids.push(view.chapter.start);
+      }
+      ids.forEach(function (id) {
+        var src = (data.art || {})[id];
+        if (src) { var im = new Image(); im.src = src; }
+      });
+    } catch (e) { /* 프리페치 실패는 무시 */ }
+  }
+
   // 복기 화면: 한 학기 동안의 결정을 되짚는다. 점수 대신 축 영향과 되돌아볼 지점만 보여 준다.
   function showReview(state) {
     var items = Review.buildReview(state, data);
@@ -172,6 +235,11 @@
       }
       if (it.riskFlags.length) {
         notes += '<p class="review-note risk">이 선택의 흔적은 7월의 사건으로 이어졌습니다.</p>';
+      }
+      if (it.alternatives && it.alternatives.length) {
+        notes += '<details class="alts"><summary>그때의 다른 선택지 보기</summary><ul>' +
+          it.alternatives.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') +
+          '</ul></details>';
       }
       return '<div class="review-item' + (it.regret ? ' regret' : '') + '">' +
         '<div class="review-meta">' + esc(it.chapter.month) + ' · ' + esc(it.chapter.title) +
@@ -194,11 +262,61 @@
     actions.appendChild(btn('결과로 돌아가기', 'btn btn-primary', function () { showEnding(state); }));
   }
 
+  // 결과 공유 URL: #r=<칭호index>.<6축 점수> — 서버 없이 결과를 주고받는다.
+  function buildShareHash(normalized, title) {
+    var t = TITLE_ORDER.indexOf(title);
+    return '#r=' + [t < 0 ? 5 : t].concat(Scoring.AXES.map(function (a) {
+      return normalized[a];
+    })).join('.');
+  }
+
+  function parseShareHash(hash) {
+    var m = /^#r=(\d+(?:\.\d+){6})$/.exec(hash || '');
+    if (!m) return null;
+    var parts = m[1].split('.').map(Number);
+    var titleIdx = parts.shift();
+    if (titleIdx < 0 || titleIdx >= TITLE_ORDER.length) return null;
+    if (parts.some(function (v) { return !Number.isInteger(v) || v < 0 || v > 100; })) return null;
+    var normalized = {};
+    Scoring.AXES.forEach(function (a, i) { normalized[a] = parts[i]; });
+    return { normalized: normalized, title: TITLE_ORDER[titleIdx] };
+  }
+
+  // 공유받은 결과 화면 (읽기 전용 — 복기·도감 기록 없음)
+  function showSharedResult(shared) {
+    var endings = data.endings || { prescriptions: {}, titles: {} };
+    var verdict = Scoring.evaluate(shared.normalized, [], endings);
+    var titleInfo = (endings.titles || {})[shared.title] || {};
+    var scoreList = Scoring.AXES.map(function (a) {
+      return '<li><span>' + esc(AXIS_LABEL[a]) + '</span><b>' + shared.normalized[a] + '</b></li>';
+    }).join('');
+    var actions = screen(
+      '<div class="screen ending-screen">' +
+      '<div class="kicker">공유받은 결과 — 어느 교사의 한 학기</div>' +
+      '<h2 class="ending-title">' + esc(shared.title) + '</h2>' +
+      '<p class="title-desc">' + esc(titleInfo.desc || '') + '</p>' +
+      '<div class="radar">' + Scoring.radarSVG(shared.normalized, { size: 320 }) + '</div>' +
+      '<ul class="radar-scores" aria-label="6D 축별 점수 (100점 만점)">' + scoreList + '</ul>' +
+      '<div class="rx-list">' + verdict.prescriptions.map(function (p) {
+        var name = p.axis.charAt(0).toUpperCase() + p.axis.slice(1);
+        return '<div class="rx"><h4>' + esc(name) + '</h4><p>' + esc(p.summary || '') + '</p></div>';
+      }).join('') + '</div>' +
+      '<div class="actions"></div>' +
+      '<footer class="credit">6D 모델: UNESCO(2024)·EU AI Act 제4조·OECD를 종합한 임태형(전주교육대학교)의 재구성 실천 모델 (공인 프레임워크 아님)</footer>' +
+      '</div>'
+    );
+    actions.appendChild(btn('나도 한 학기 살아보기', 'btn btn-primary', function () {
+      history.replaceState(null, '', location.pathname + location.search);
+      showTitle();
+    }));
+  }
+
   function showEnding(state) {
     var endings = data.endings || { prescriptions: {}, titles: {} };
     var maxPerAxis = data.maxPerAxis || Scoring.AXES.reduce(function (m, a) { m[a] = 10; return m; }, {});
     var normalized = Scoring.normalize(state.scores, maxPerAxis);
     var verdict = Scoring.evaluate(normalized, state.flags, endings);
+    var seenTitles = recordTitle(verdict.title);
     var rx = verdict.prescriptions.map(function (p) {
       var name = p.axis.charAt(0).toUpperCase() + p.axis.slice(1);
       return '<div class="rx"><h4>' + esc(name) + '</h4><p>' + esc(p.summary || '') + '</p>' +
@@ -219,12 +337,27 @@
       '<div class="radar" id="radar-box">' + Scoring.radarSVG(normalized, { size: 320 }) + '</div>' +
       '<ul class="radar-scores" aria-label="6D 축별 점수 (100점 만점)">' + scoreList + '</ul>' +
       '<div class="rx-list">' + rx + '</div>' +
+      '<div class="collection"><div class="collection-head">만난 칭호 ' + seenTitles.length + '/6</div>' +
+      '<div class="collection-chips">' + TITLE_ORDER.map(function (t) {
+        var got = seenTitles.indexOf(t) >= 0;
+        return '<span class="title-chip' + (got ? ' got' : '') + '">' + (got ? esc(t) : '???') + '</span>';
+      }).join('') + '</div>' +
+      (seenTitles.length < 6 ? '<p class="collection-hint">다른 선택은 다른 학기를 만듭니다 — 다시 살아보세요.</p>' : '<p class="collection-hint">여섯 학기를 모두 살아냈습니다.</p>') +
+      '</div>' +
       '<div class="actions"></div>' +
       '<footer class="credit">6D 모델: UNESCO(2024)·EU AI Act 제4조·OECD를 종합한 임태형(전주교육대학교)의 재구성 실천 모델 (공인 프레임워크 아님)</footer>' +
       '</div>'
     );
     actions.appendChild(btn('복기하기 — 나의 결정 되돌아보기', 'btn', function () { showReview(state); }));
     actions.appendChild(btn('결과 이미지 저장', 'btn', function () { saveResultImage(normalized, verdict); }));
+    var shareBtn = btn('결과 링크 복사', 'btn', function () {
+      var url = location.origin + location.pathname + buildShareHash(normalized, verdict.title);
+      var done = function () { shareBtn.textContent = '복사했어요 — 붙여넣어 공유하세요'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, function () { prompt('아래 링크를 복사하세요', url); });
+      } else { prompt('아래 링크를 복사하세요', url); }
+    });
+    actions.appendChild(shareBtn);
     actions.appendChild(btn('다시 하기', 'btn btn-primary', function () { engine.reset(); showTitle(); }));
   }
 
@@ -271,5 +404,7 @@
     app.innerHTML = '<div class="error-screen"><h1>콘텐츠를 불러오지 못했어요</h1><p>시나리오 데이터가 없습니다. 새로고침해 주세요.</p></div>';
     return;
   }
-  showTitle();
+  var shared = parseShareHash(location.hash);
+  if (shared) showSharedResult(shared);
+  else showTitle();
 })();

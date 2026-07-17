@@ -397,3 +397,59 @@ footer.credit {
   color: var(--ink-600, #5c5140);
 }
 .radar-scores li b { color: var(--olive-700, #4b5528); }
+
+/* ----- 2차 개선: 온보딩·도감·복기 대안 ----- */
+.d6-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-3, 12px);
+  margin: var(--space-5, 20px) 0;
+}
+.d6-card {
+  position: relative;
+  background: var(--paper-card, #fffdf6);
+  border: 1px solid var(--ink-100, #ddd2b2);
+  border-radius: 10px;
+  padding: 14px 16px 12px 44px;
+}
+.d6-card .d6-num {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--olive-100, #e4e8d6);
+  color: var(--olive-800, #3d451f);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.d6-card b { color: var(--olive-800, #3d451f); }
+.d6-card p { margin: 4px 0 0; font-size: 0.88rem; color: var(--ink-600, #5c5140); }
+.collection {
+  margin: var(--space-6, 24px) 0;
+  padding: var(--space-4, 16px);
+  background: var(--paper-sunken, #e9dfc2);
+  border-radius: 10px;
+}
+.collection-head { font-weight: 700; color: var(--ink-800, #3a3226); margin-bottom: 8px; }
+.collection-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.title-chip {
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--paper-card, #fffdf6);
+  color: var(--ink-300, #ab9d80);
+  border: 1px dashed var(--ink-200, #cabfa0);
+}
+.title-chip.got {
+  color: var(--olive-800, #3d451f);
+  border: 1px solid var(--olive-200, #cdd3ad);
+  background: var(--olive-100, #e4e8d6);
+}
+.collection-hint { margin: 10px 0 0; font-size: 0.85rem; color: var(--ink-500, #6f634e); }
+.alts { margin-top: 10px; font-size: 0.88rem; }
+.alts summary { cursor: pointer; color: var(--olive-700, #4b5528); }
+.alts ul { margin: 8px 0 0; padding-left: 18px; color: var(--ink-600, #5c5140); }

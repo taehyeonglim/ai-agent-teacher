@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 시나리오 구조 검증
+        run: node tools/validate.js
+      - name: 로직 테스트
+        run: node --test tools/scoring.test.js tools/engine.test.js tools/validate.test.js tools/review.test.js
+      - name: 전략별 플레이스루 (결정적)
+        run: node tools/playthrough.js

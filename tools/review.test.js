@@ -58,6 +58,16 @@ test('위험 플래그(무분별 위임 계열)는 riskFlags로 표시', () => {
   assert.deepStrictEqual(clean[0].riskFlags, []);
 });
 
+test('regret 항목은 당시의 다른 선택지 텍스트를 alternatives로 담는다', () => {
+  const items = Review.buildReview(st([{ sceneId: 'ch1_s01', choiceIndex: 0 }]), GAME);
+  assert.deepStrictEqual(items[0].alternatives, ['소폭 아쉬움', '균형']);
+});
+
+test('regret이 아니면 alternatives는 빈 배열', () => {
+  const items = Review.buildReview(st([{ sceneId: 'ch1_s01', choiceIndex: 2 }]), GAME);
+  assert.deepStrictEqual(items[0].alternatives, []);
+});
+
 test('존재하지 않는 scene/choice는 조용히 건너뛴다', () => {
   const items = Review.buildReview(st([
     { sceneId: 'ghost', choiceIndex: 0 },

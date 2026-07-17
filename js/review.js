@@ -56,6 +56,12 @@
       const riskFlags = Array.isArray(flags)
         ? flags.filter((flag) => RISK_FLAGS.indexOf(flag) !== -1)
         : [];
+      // 되돌아볼 결정에서만 당시의 다른 길을 보여 준다 — 전 항목에 다 보여주면 정답지가 된다.
+      const alternatives = regret
+        ? scene.choices
+          .filter((other, index) => other && index !== entry.choiceIndex)
+          .map((other) => other.text)
+        : [];
 
       items.push({
         sceneId: entry.sceneId,
@@ -71,6 +77,7 @@
         regret,
         weakAxes,
         riskFlags,
+        alternatives,
       });
       return items;
     }, []);
