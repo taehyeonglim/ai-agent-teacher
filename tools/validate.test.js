@@ -44,6 +44,21 @@ test('규칙1: start가 존재하지 않는 scene이면 검출', () => {
   assert.ok(rules(r.errors).includes(1));
 });
 
+test('규칙1: 다른 챕터의 scene을 next로 참조하면 에러 (엔진은 챕터 내부만 조회)', () => {
+  const a = mkChapter('ch1');
+  const b = mkChapter('ch2');
+  a.scenes['ch1_s01'].choices[0].next = 'ch2_s01';
+  const r = validateGame([a, b], { minAxisDecisions: 1 });
+  assert.ok(rules(r.errors).includes(1));
+});
+
+test('규칙3: 알 수 없는 scene.type은 에러', () => {
+  const ch = mkChapter('ch1');
+  ch.scenes['ch1_s02'] = { type: 'cutscene', speaker: 'narrator', text: '끝.', next: 'END' };
+  const r = validateGame([ch], { minAxisDecisions: 1 });
+  assert.ok(rules(r.errors).includes(3));
+});
+
 test('규칙2: 고아 scene은 경고', () => {
   const ch = mkChapter('ch1');
   ch.scenes['ch1_s50'] = { type: 'narration', speaker: 'narrator', text: '고아.', next: 'END' };

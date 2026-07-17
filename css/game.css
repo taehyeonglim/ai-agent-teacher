@@ -355,3 +355,45 @@ footer.credit {
   color: var(--ink-600, #5c5140);
 }
 .review-note.risk { color: var(--wax-red-700, #7a2e22); }
+
+/* ----- 검수 반영: 포커스·에필로그·점수 목록·재시작 ----- */
+.screen:focus { outline: none; }
+.screen-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--space-3, 12px);
+}
+.btn-inline {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  font-size: 0.78rem;
+  color: var(--ink-400, #8c7f66);
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+.btn-inline:hover { color: var(--wax-red-700, #7a2e22); }
+.epilogue {
+  border-left: 3px solid var(--olive-200, #cdd3ad);
+  padding-left: var(--space-4, 16px);
+  margin: var(--space-4, 16px) 0;
+  color: var(--ink-700, #4a4030);
+  font-style: italic;
+}
+.radar-scores {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-4, 16px) auto var(--space-6, 24px);
+  max-width: 340px;
+}
+.radar-scores li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 2px;
+  border-bottom: 1px dotted var(--rule-line, #cdbf95);
+  font-size: 0.9rem;
+  color: var(--ink-600, #5c5140);
+}
+.radar-scores li b { color: var(--olive-700, #4b5528); }

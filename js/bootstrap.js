@@ -15,12 +15,12 @@
     }).join('');
   }
 
-  // 삽화: art 매핑에 있으면 <img> 태그 문자열 반환, 로드 실패 시 자기 자신을 숨긴다.
+  // 삽화: webp 실패 시 jpg로 폴백, 그것도 실패하면 조용히 숨긴다.
   function artTag(key) {
     var src = (data.art || {})[key];
     if (!src) return '';
     return '<div class="scene-art"><img src="' + esc(src) + '" alt="" decoding="async" ' +
-      'onerror="this.parentNode.removeChild(this)"></div>';
+      'onerror="if(this.src.slice(-5)===\'.webp\'){this.src=this.src.slice(0,-5)+\'.jpg\';}else{this.parentNode.removeChild(this);}"></div>';
   }
 
   var SPEAKER_LABEL = {
@@ -55,7 +55,28 @@
     app.innerHTML = html;
     app.scrollTop = 0;
     window.scrollTo(0, 0);
+    // 접근성: 화면 교체 후 포커스를 새 화면 컨테이너로 옮겨
+    // 키보드·스크린리더 사용자가 문서 처음부터 다시 탐색하지 않게 한다.
+    var sc = app.querySelector('.screen');
+    if (sc) {
+      sc.setAttribute('tabindex', '-1');
+      sc.focus({ preventScroll: true });
+    }
     return app.querySelector('.actions');
+  }
+
+  // 게임 중 재시작: 네이티브 confirm 없이 2단계 버튼으로 확인한다.
+  function restartControl() {
+    var wrap = document.createElement('span');
+    wrap.className = 'restart-ctl';
+    var b = btn('⟲ 처음부터', 'btn-inline', function () {
+      if (b.dataset.armed === '1') { engine.reset(); showTitle(); return; }
+      b.dataset.armed = '1';
+      b.textContent = '저장을 지우고 처음부터? (한 번 더 누르면 실행)';
+      setTimeout(function () { b.dataset.armed = ''; b.textContent = '⟲ 처음부터'; }, 4000);
+    });
+    wrap.appendChild(b);
+    return wrap;
   }
 
   function showTitle() {
@@ -70,7 +91,10 @@
       '</div>'
     );
     var saved = Engine.load();
-    if (saved && saved.phase !== 'ended') {
+    if (saved && saved.phase === 'ended') {
+      actions.appendChild(btn('지난 결과 보기', 'btn', function () { engine.start(saved); }));
+      actions.appendChild(btn('처음부터', 'btn btn-primary', function () { engine.start(); }));
+    } else if (saved) {
       actions.appendChild(btn('이어하기', 'btn btn-primary', function () { engine.start(saved); }));
       actions.appendChild(btn('처음부터', 'btn', function () { engine.start(); }));
     } else {
@@ -97,7 +121,7 @@
     var isDecision = scene.type === 'decision';
     var actions = screen(
       '<div class="screen scene-screen">' +
-      '<div class="chapter-tag">' + esc(view.chapter.month) + ' · ' + esc(view.chapter.title) + '</div>' +
+      '<div class="screen-top"><div class="chapter-tag">' + esc(view.chapter.month) + ' · ' + esc(view.chapter.title) + '</div></div>' +
       artTag(view.sceneId) +
       speakerTag(scene.speaker) +
       paras(scene.text) +
@@ -112,6 +136,8 @@
     } else {
       actions.appendChild(btn('계속', 'btn btn-primary', function () { engine.continue_(); }));
     }
+    var top = app.querySelector('.screen-top');
+    if (top) top.appendChild(restartControl());
   }
 
   function showResult(view) {
@@ -178,19 +204,67 @@
       return '<div class="rx"><h4>' + esc(name) + '</h4><p>' + esc(p.summary || '') + '</p>' +
         '<p class="action30">30일 실천: ' + esc(p.action30 || '') + '</p></div>';
     }).join('');
+    var epilogues = endings.epilogue || {};
+    var avg = Scoring.AXES.reduce(function (s, a) { return s + normalized[a]; }, 0) / 6;
+    var epilogue = avg >= 60 ? epilogues.high : avg >= 35 ? epilogues.mid : epilogues.low;
+    var scoreList = Scoring.AXES.map(function (a) {
+      return '<li><span>' + esc(AXIS_LABEL[a]) + '</span><b>' + normalized[a] + '</b></li>';
+    }).join('');
     var actions = screen(
       '<div class="screen ending-screen">' +
       '<div class="kicker">방학식 — 한 학기 결산</div>' +
+      (epilogue ? '<div class="epilogue">' + paras(epilogue) + '</div>' : '') +
       '<h2 class="ending-title">' + esc(verdict.title) + '</h2>' +
       '<p class="title-desc">' + esc(verdict.titleDesc || '') + '</p>' +
       '<div class="radar" id="radar-box">' + Scoring.radarSVG(normalized, { size: 320 }) + '</div>' +
+      '<ul class="radar-scores" aria-label="6D 축별 점수 (100점 만점)">' + scoreList + '</ul>' +
       '<div class="rx-list">' + rx + '</div>' +
       '<div class="actions"></div>' +
       '<footer class="credit">6D 모델: UNESCO(2024)·EU AI Act 제4조·OECD를 종합한 임태형(전주교육대학교)의 재구성 실천 모델 (공인 프레임워크 아님)</footer>' +
       '</div>'
     );
     actions.appendChild(btn('복기하기 — 나의 결정 되돌아보기', 'btn', function () { showReview(state); }));
+    actions.appendChild(btn('결과 이미지 저장', 'btn', function () { saveResultImage(normalized, verdict); }));
     actions.appendChild(btn('다시 하기', 'btn btn-primary', function () { engine.reset(); showTitle(); }));
+  }
+
+  // 결과 카드를 PNG로 저장 — 연수장에서 서로 비교하는 활동용.
+  function saveResultImage(normalized, verdict) {
+    var W = 800, H = 1060;
+    var canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#f0e8d2'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fffdf6'; ctx.fillRect(40, 40, W - 80, H - 80);
+    ctx.strokeStyle = '#cdbf95'; ctx.strokeRect(40.5, 40.5, W - 81, H - 81);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#5f6b3a'; ctx.font = '22px serif';
+    ctx.fillText('위임의 기술 — 한 학기 결산', W / 2, 110);
+    ctx.fillStyle = '#2b241d'; ctx.font = 'bold 44px serif';
+    ctx.fillText(verdict.title, W / 2, 170);
+    var svg = Scoring.radarSVG(normalized, { size: 460 });
+    var img = new Image();
+    img.onload = function () {
+      ctx.drawImage(img, (W - 460) / 2, 200, 460, 460);
+      ctx.font = '20px serif'; ctx.textAlign = 'left';
+      Scoring.AXES.forEach(function (a, i) {
+        var y = 720 + i * 34;
+        ctx.fillStyle = '#4a4030';
+        ctx.fillText(AXIS_LABEL[a], 120, y);
+        ctx.fillStyle = '#5f6b3a';
+        ctx.fillRect(320, y - 14, normalized[a] * 3.4, 16);
+        ctx.fillStyle = '#2b241d';
+        ctx.fillText(String(normalized[a]), 320 + normalized[a] * 3.4 + 10, y);
+      });
+      ctx.textAlign = 'center'; ctx.fillStyle = '#8c7f66'; ctx.font = '14px serif';
+      ctx.fillText('6D 모델: UNESCO(2024)·EU AI Act 제4조·OECD 종합, 임태형(전주교육대학교) 재구성', W / 2, 980);
+      ctx.fillText('taehyeonglim.github.io/ai-agent-teacher', W / 2, 1004);
+      var a = document.createElement('a');
+      a.download = 'wiim-6d-result.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   }
 
   if (!data.chapters || !data.chapters.length) {

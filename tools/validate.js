@@ -22,18 +22,19 @@ function validateGame(chapters, opts) {
   const addError = (rule, msg) => errors.push({ rule, msg });
   const addWarning = (rule, msg) => warnings.push({ rule, msg });
 
-  // scene id는 게임 전체에서 고유하다는 계약을 이용해 참조를 확인한다.
-  const allSceneIds = new Set();
+  // 엔진은 현재 챕터의 scenes에서만 조회하므로, 참조 검증도 챕터 내부로 제한한다.
+  const sceneIdsByChapter = new Map();
   for (const chapter of chapterList) {
     if (!chapter || !chapter.scenes || typeof chapter.scenes !== 'object') continue;
-    for (const sceneId of Object.keys(chapter.scenes)) allSceneIds.add(sceneId);
+    sceneIdsByChapter.set(chapter, new Set(Object.keys(chapter.scenes)));
   }
 
-  const isValidTarget = (target) => target === 'END' ||
-    (typeof target === 'string' && allSceneIds.has(target));
+  const isValidTarget = (target, chapter) => target === 'END' ||
+    (typeof target === 'string' && sceneIdsByChapter.has(chapter)
+      && sceneIdsByChapter.get(chapter).has(target));
   const checkTarget = (target, chapter, sceneId, label) => {
-    if (!isValidTarget(target)) {
-      addError(1, `${location(chapter, sceneId)}의 ${label} 참조 '${String(target)}'가 존재하는 scene id 또는 END가 아닙니다.`);
+    if (!isValidTarget(target, chapter)) {
+      addError(1, `${location(chapter, sceneId)}의 ${label} 참조 '${String(target)}'가 같은 챕터의 scene id 또는 END가 아닙니다.`);
     }
   };
 
@@ -116,6 +117,9 @@ function validateGame(chapters, opts) {
         });
         checkTarget(scene.default, chapter, sceneId, 'default');
         if (typeof scene.default === 'string') branchTargets.add(scene.default);
+      } else {
+        // 스키마가 정의하지 않은 type은 런타임에서 진행 불능 화면을 만들 수 있다.
+        addError(3, `${location(chapter, sceneId)}의 type '${String(scene.type)}'은 허용되지 않습니다 (narration/decision/branch만 가능).`);
       }
     }
   }
