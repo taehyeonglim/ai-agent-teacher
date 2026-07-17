@@ -262,12 +262,18 @@
     actions.appendChild(btn('결과로 돌아가기', 'btn btn-primary', function () { showEnding(state); }));
   }
 
-  // 결과 공유 URL: #r=<칭호index>.<6축 점수> — 서버 없이 결과를 주고받는다.
-  function buildShareHash(normalized, title) {
+  var TITLE_SLUG = ['orchestrator', 'artisan', 'unbraked', 'shadow', 'navigator', 'designer'];
+
+  // 결과 공유 URL: 칭호별 공유 페이지(share/*.html)가 소셜 썸네일 OG를 제공하고,
+  // 사람이 열면 ?r= 페이로드를 #r=로 바꿔 정확한 결과 화면으로 리다이렉트한다.
+  function buildShareUrl(normalized, title) {
     var t = TITLE_ORDER.indexOf(title);
-    return '#r=' + [t < 0 ? 5 : t].concat(Scoring.AXES.map(function (a) {
+    if (t < 0) t = TITLE_ORDER.length - 1;
+    var payload = [t].concat(Scoring.AXES.map(function (a) {
       return normalized[a];
     })).join('.');
+    var dir = location.pathname.replace(/[^/]*$/, '');
+    return location.origin + dir + 'share/' + TITLE_SLUG[t] + '.html?r=' + payload;
   }
 
   function parseShareHash(hash) {
@@ -351,7 +357,7 @@
     actions.appendChild(btn('복기하기 — 나의 결정 되돌아보기', 'btn', function () { showReview(state); }));
     actions.appendChild(btn('결과 이미지 저장', 'btn', function () { saveResultImage(normalized, verdict); }));
     var shareBtn = btn('결과 링크 복사', 'btn', function () {
-      var url = location.origin + location.pathname + buildShareHash(normalized, verdict.title);
+      var url = buildShareUrl(normalized, verdict.title);
       var done = function () { shareBtn.textContent = '복사했어요 — 붙여넣어 공유하세요'; };
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(done, function () { prompt('아래 링크를 복사하세요', url); });
