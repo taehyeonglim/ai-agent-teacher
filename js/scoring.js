@@ -122,7 +122,7 @@
     if (AXES.every((axis) => valueOf(scores, axis) >= 60)) {
       title = '신중한 오케스트레이터';
     } else if (valueOf(scores, 'delegate') <= 30
-      && activeFlags.filter((flag) => typeof flag === 'string' && flag.startsWith('fatigue_')).length >= 2) {
+      && activeFlags.filter((flag) => typeof flag === 'string' && flag.startsWith('fatigue_')).length >= 3) {
       title = '고독한 장인';
     } else if ((valueOf(scores, 'delegate') >= 70
       && (valueOf(scores, 'detect') <= 40 || valueOf(scores, 'decide') <= 40))

@@ -58,13 +58,13 @@
         choices: [
           {
             text: "시도 사실과 차단 절차를 기록해 공유한다",
-            d: { decide: 2 },
+            d: { decide: 2, disclose: 1 },
             result: "당신은 시도된 범위와 차단 시점을 기록하고, 학생부 입력은 교사 확인 뒤에만 열리도록 규칙을 바꾼다. 교감은 기록을 읽고 고개를 끄덕인다. 온새미는 새 중지 조건을 반복해 확인한다.",
             next: "ch5_s05"
           },
           {
             text: "입력만 취소하고 조용히 넘긴다",
-            d: { decide: -1, disclose: 1 },
+            d: { decide: -1, disclose: -1 },
             result: "당신은 입력 창을 닫고 자동 실행 목록에서 해당 항목만 뺀다. 당장 업무는 다시 흘러간다. 다만 왜 그 항목이 목록에 들어왔는지는 누구도 적어 두지 않는다.",
             next: "ch5_s05"
           },
@@ -81,10 +81,24 @@
         branches: [
           { ifFlags: ["roster_leaked"], next: "ch5_ev_privacy" },
           { ifFlags: ["auto_send_enabled"], next: "ch5_ev_promise" },
-          { ifFlags: ["promise_unchecked"], next: "ch5_ev_promise" },
+          { ifFlags: ["promise_unchecked"], next: "ch5_ev_promise" }
+        ],
+        default: "ch5_s05h1"
+      },
+      // 공개(disclosure) 사건은 데이터·소통 사건과 독립적으로 판정한다.
+      ch5_s05h1: {
+        type: "branch",
+        branches: [
           { ifFlags: ["no_disclosure"], next: "ch5_ev_hidden" }
         ],
         default: "ch5_s05a"
+      },
+      ch5_s05h2: {
+        type: "branch",
+        branches: [
+          { ifFlags: ["no_disclosure"], next: "ch5_ev_hidden" }
+        ],
+        default: "ch5_s06"
       },
       ch5_ev_privacy: {
         type: "decision",
@@ -96,19 +110,19 @@
             text: "보관 경위를 밝히고 삭제·점검 절차를 공개한다",
             d: { disclose: 2 },
             result: "당신은 남은 기록의 범위와 삭제 일정을 정리해 회신한다. 비식별 요약만 쓰도록 작업 규칙도 함께 고친다. 감사 담당자는 후속 점검 일정을 안내한다.",
-            next: "ch5_s06"
+            next: "ch5_s05h2"
           },
           {
             text: "기록을 지우고 담당자에게만 사과한다",
             d: { disclose: 1, decide: -1 },
             result: "당신은 우선 로그를 삭제하고 담당자에게 사정을 설명한다. 급한 불은 꺼진 듯하다. 그러나 어떤 기록이 어떤 경로로 남았는지 확인하는 표는 비어 있다.",
-            next: "ch5_s06"
+            next: "ch5_s05h2"
           },
           {
             text: "시스템 보관이라며 책임을 넘긴다",
             d: { disclose: -2, decide: -1 },
             result: "회신은 시스템의 자동 보관 기능 탓이라는 설명으로 시작한다. 담당자는 추가 자료를 요청한다. 당신은 보내기 전보다 더 긴 설명을 준비해야 한다.",
-            next: "ch5_s06"
+            next: "ch5_s05h2"
           }
         ]
       },
@@ -122,19 +136,19 @@
             text: "누락을 인정하고 발송 전 확인 절차를 제시한다",
             d: { disclose: 2 },
             result: "당신은 빠진 리포트와 잘못 간 문구를 인정하고 직접 사과한다. 다음 발송부터는 교사 확인 시각을 함께 남기겠다고 설명한다. 박세라는 잠시 말이 없더니, 그 절차를 문자로도 보내 달라고 한다.",
-            next: "ch5_s06"
+            next: "ch5_s05h2"
           },
           {
             text: "이번 주 리포트만 다시 보내 드린다",
             d: { disclose: 1, decide: -1 },
             result: "당신은 수정한 리포트를 곧바로 보낸다. 박세라는 받은 사실을 확인한다. 다만 다음 주에도 같은 일이 생기지 않을 이유는 대화 속에 남지 않는다.",
-            next: "ch5_s06"
+            next: "ch5_s05h2"
           },
           {
             text: "자동 발송 오류였다고만 설명한다",
             d: { disclose: -2, decide: -1 },
             result: "당신은 자동 발송의 오류를 설명하며 양해를 구한다. 박세라는 \"선생님은 어디에 계셨나요?\"라고 묻는다. 답장을 쓰던 손이 잠깐 멈춘다.",
-            next: "ch5_s06"
+            next: "ch5_s05h2"
           }
         ]
       },

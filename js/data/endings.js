@@ -56,9 +56,9 @@
   window.GAME_DATA.maxPerAxis = {
     define: 9,
     design: 14,
-    delegate: 5,
+    delegate: 8,
     detect: 8,
     decide: 12,
-    disclose: 8
+    disclose: 9
   };
 })();

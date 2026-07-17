@@ -62,9 +62,14 @@ test('칭호: 전축 60 이상 → 신중한 오케스트레이터', () => {
   assert.strictEqual(r.title, '신중한 오케스트레이터');
 });
 
-test('칭호: delegate≤30 + fatigue 2개 → 고독한 장인', () => {
-  const r = Scoring.evaluate(norm({ delegate: 20 }), ['fatigue_ch1', 'fatigue_ch2'], ENDINGS);
+test('칭호: delegate≤30 + fatigue 3개 → 고독한 장인', () => {
+  const r = Scoring.evaluate(norm({ delegate: 20 }), ['fatigue_ch1', 'fatigue_ch2', 'fatigue_ch4'], ENDINGS);
   assert.strictEqual(r.title, '고독한 장인');
+});
+
+test('칭호: fatigue 2개뿐이면 장인이 아니다 (우발적 회피 배제)', () => {
+  const r = Scoring.evaluate(norm({ delegate: 20, define: 10 }), ['fatigue_ch1', 'fatigue_ch2'], ENDINGS);
+  assert.notStrictEqual(r.title, '고독한 장인');
 });
 
 test('칭호: delegate≥70 + detect≤40 → 브레이크 없는 위임러', () => {

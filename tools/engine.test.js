@@ -158,6 +158,18 @@ test('전이마다 저장되고 Engine.load()로 이어하기 가능', () => {
   assert.ok(st.flags.includes('tookA'));
 });
 
+test('게임 종료 시 ended 상태가 저장된다', () => {
+  const store = mockStorage();
+  const h = harness();
+  h.inst.start(); h.inst.continue_();
+  h.inst.choose(0); h.inst.continue_();   // a_s02
+  h.inst.continue_();                      // END → chB 인트로
+  h.inst.continue_(); h.inst.continue_();  // b_s01 → END → 종료
+  assert.ok(h.ended());
+  const saved = JSON.parse(store['wiim_save_v1']);
+  assert.strictEqual(saved.phase, 'ended');
+});
+
 test('reset()은 저장을 지우고 처음으로 돌아간다', () => {
   const store = mockStorage();
   const h = harness();

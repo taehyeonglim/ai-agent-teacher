@@ -127,6 +127,8 @@
 
     function finish() {
       state.phase = 'ended';
+      // 완주 상태도 저장해 두어야 새로고침 후 '이어하기'가 마지막 장면으로 되돌리지 않는다.
+      save(serializableState());
       if (typeof callbacks.onEnd === 'function') callbacks.onEnd(serializableState());
     }
 

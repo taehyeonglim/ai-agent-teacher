@@ -20,7 +20,7 @@
         choices: [
           {
             text: '초안 뒤 전수 검토하고 직접 게시한다',
-            d: { design: 2, decide: 1 },
+            d: { design: 2, decide: 1, delegate: 1 },
             result: '온새미가 답안마다 관찰과 제안을 나누어 초안을 채운다. 당신은 한 장씩 읽으며 말투와 근거를 고치고, 마지막 게시 버튼은 손끝에 남겨 둔다.',
             next: 'ch2_s03',
           },
@@ -112,7 +112,7 @@
         choices: [
           {
             text: '피드백을 함께 따져 보는 질문 활동을 만든다',
-            d: { define: 2, design: 1, delegate: 0 },
+            d: { define: 2, design: 1, delegate: 1 },
             flags: ['overreliance_addressed'],
             result: '당신은 온새미의 제안 옆에 “왜 바꾸고 싶은가”, “남길 말은 무엇인가”를 적는 칸을 만든다. 이준과 한 문장을 놓고 근거를 번갈아 말해 본다. 온새미의 말은 결론이 아니라 대화의 재료가 된다.',
             next: 'ch2_s10',
