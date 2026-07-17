@@ -411,7 +411,9 @@
         ctx.fillStyle = '#2b241d';
         ctx.fillText(String(normalized[a]), 320 + normalized[a] * 3.4 + 10, y);
       });
-      ctx.textAlign = 'center'; ctx.fillStyle = '#8c7f66'; ctx.font = '14px serif';
+      ctx.textAlign = 'center'; ctx.fillStyle = '#8c7f66'; ctx.font = '16px serif';
+      ctx.fillText('각 축은 모범적인 한 학기를 100으로 환산한 점수입니다', W / 2, 936);
+      ctx.fillStyle = '#8c7f66'; ctx.font = '14px serif';
       ctx.fillText('6D 모델: UNESCO(2024)·EU AI Act 제4조·OECD 종합, 임태형(전주교육대학교) 재구성', W / 2, 980);
       ctx.fillText('taehyeonglim.github.io/ai-agent-teacher', W / 2, 1004);
       var a = document.createElement('a');
