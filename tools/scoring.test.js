@@ -106,3 +106,19 @@ test('evaluate: 최저 2축과 그 처방을 반환', () => {
   assert.strictEqual(r.prescriptions[0].summary, 'define 요약');
   assert.strictEqual(r.prescriptions[0].action30, 'define 실천');
 });
+
+// ----- bandOf: 점수 구간 해석 (결과창 배지·에필로그 공용) -----
+
+test('bandOf: 구간 경계 60/35', () => {
+  assert.strictEqual(Scoring.bandOf(100), 'high');
+  assert.strictEqual(Scoring.bandOf(60), 'high');
+  assert.strictEqual(Scoring.bandOf(59), 'mid');
+  assert.strictEqual(Scoring.bandOf(35), 'mid');
+  assert.strictEqual(Scoring.bandOf(34), 'low');
+  assert.strictEqual(Scoring.bandOf(0), 'low');
+  assert.strictEqual(Scoring.bandOf(undefined), 'low', '비수치는 low');
+});
+
+test('BANDS 상수 노출 (에필로그 임계값과 동일)', () => {
+  assert.deepStrictEqual(Scoring.BANDS, { high: 60, mid: 35 });
+});

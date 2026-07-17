@@ -103,6 +103,16 @@
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" role="img" aria-label="6축 역량 레이더 차트"><style>.radar-grid{fill:none;stroke:currentColor;stroke-opacity:.18}.radar-spoke{stroke:currentColor;stroke-opacity:.12}.radar-data{fill:var(--olive-600, #6b7a3f);fill-opacity:.25;stroke:var(--olive-600, #6b7a3f);stroke-width:2}.radar-label{fill:currentColor;font:12px sans-serif}</style>${grid}${spokes}<polygon class="radar-data" points="${pointsString(values, center, radius)}" />${labels}</svg>`;
   }
 
+  // 점수 해석 구간 — 축별 배지와 에필로그(평균) 분기가 같은 기준을 쓴다.
+  const BANDS = Object.freeze({ high: 60, mid: 35 });
+
+  function bandOf(value) {
+    const v = typeof value === 'number' && Number.isFinite(value) ? value : 0;
+    if (v >= BANDS.high) return 'high';
+    if (v >= BANDS.mid) return 'mid';
+    return 'low';
+  }
+
   // 무분별 위임을 나타내는 시나리오 플래그 — 3개 이상이면 점수와 무관하게 위임러 판정
   const RECKLESS_FLAGS = [
     'no_goal_defined', 'sources_unchecked', 'no_review_step', 'error_ignored',
@@ -157,5 +167,5 @@
     };
   }
 
-  return Object.freeze({ AXES, zero, add, normalize, radarSVG, evaluate });
+  return Object.freeze({ AXES, BANDS, zero, add, normalize, radarSVG, evaluate, bandOf });
 }));
