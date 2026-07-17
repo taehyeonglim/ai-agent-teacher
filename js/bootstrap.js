@@ -186,6 +186,26 @@
     ['Disclose 공개', 'AI 사용·출처·과정·책임자를 투명하게 밝힌다'],
   ];
 
+  // 구간 배지 문구 — Scoring.bandOf 판정을 화면 표현으로 바꾼다.
+  var BAND_LABEL = { high: '● 안정', mid: '◐ 성장 중', low: '○ 돌아볼 지점' };
+
+  // 점수 리스트 — 본인 결과·공유 결과 화면 공용.
+  // 각 행: 축 라벨 + 점수 + 구간 배지 + 정의 한 줄(D6_DEFS 재사용, AXES와 같은 순서).
+  function scoreListHTML(normalized) {
+    var rows = Scoring.AXES.map(function (a, i) {
+      var band = Scoring.bandOf(normalized[a]);
+      return '<li><div class="score-row"><span>' + esc(AXIS_LABEL[a]) + '</span>' +
+        '<span class="score-val"><b>' + normalized[a] + '</b>' +
+        '<span class="band band-' + band + '">' + esc(BAND_LABEL[band]) + '</span></span></div>' +
+        '<p class="axis-def">' + esc(D6_DEFS[i][1]) + '</p></li>';
+    }).join('');
+    return '<p class="score-caption">각 점수는 모범적으로 한 학기를 보냈을 때를 100으로 환산한 값입니다.</p>' +
+      '<ul class="radar-scores">' + rows + '</ul>';
+  }
+
+  // 처방 선정 이유 — 최저 2축이 뽑히는 구조를 화면에서 설명한다.
+  var RX_HEAD = '<div class="rx-head"><b>다음 학기를 위한 처방</b> — 여섯 축 가운데 상대적으로 아쉬웠던 두 축입니다.</div>';
+
   var TITLE_ORDER = ['신중한 오케스트레이터', '고독한 장인', '브레이크 없는 위임러',
     '그림자 속 혁신가', '믿음의 항해사', '성장하는 설계자'];
 
@@ -293,16 +313,14 @@
     var endings = data.endings || { prescriptions: {}, titles: {} };
     var verdict = Scoring.evaluate(shared.normalized, [], endings);
     var titleInfo = (endings.titles || {})[shared.title] || {};
-    var scoreList = Scoring.AXES.map(function (a) {
-      return '<li><span>' + esc(AXIS_LABEL[a]) + '</span><b>' + shared.normalized[a] + '</b></li>';
-    }).join('');
     var actions = screen(
       '<div class="screen ending-screen">' +
       '<div class="kicker">공유받은 결과 — 어느 교사의 한 학기</div>' +
       '<h2 class="ending-title">' + esc(shared.title) + '</h2>' +
       '<p class="title-desc">' + esc(titleInfo.desc || '') + '</p>' +
       '<div class="radar">' + Scoring.radarSVG(shared.normalized, { size: 320 }) + '</div>' +
-      '<ul class="radar-scores" aria-label="6D 축별 점수 (100점 만점)">' + scoreList + '</ul>' +
+      scoreListHTML(shared.normalized) +
+      RX_HEAD +
       '<div class="rx-list">' + verdict.prescriptions.map(function (p) {
         var name = p.axis.charAt(0).toUpperCase() + p.axis.slice(1);
         return '<div class="rx"><h4>' + esc(name) + '</h4><p>' + esc(p.summary || '') + '</p></div>';
@@ -330,10 +348,7 @@
     }).join('');
     var epilogues = endings.epilogue || {};
     var avg = Scoring.AXES.reduce(function (s, a) { return s + normalized[a]; }, 0) / 6;
-    var epilogue = avg >= 60 ? epilogues.high : avg >= 35 ? epilogues.mid : epilogues.low;
-    var scoreList = Scoring.AXES.map(function (a) {
-      return '<li><span>' + esc(AXIS_LABEL[a]) + '</span><b>' + normalized[a] + '</b></li>';
-    }).join('');
+    var epilogue = epilogues[Scoring.bandOf(avg)];
     var actions = screen(
       '<div class="screen ending-screen">' +
       '<div class="kicker">방학식 — 한 학기 결산</div>' +
@@ -341,7 +356,8 @@
       '<h2 class="ending-title">' + esc(verdict.title) + '</h2>' +
       '<p class="title-desc">' + esc(verdict.titleDesc || '') + '</p>' +
       '<div class="radar" id="radar-box">' + Scoring.radarSVG(normalized, { size: 320 }) + '</div>' +
-      '<ul class="radar-scores" aria-label="6D 축별 점수 (100점 만점)">' + scoreList + '</ul>' +
+      scoreListHTML(normalized) +
+      RX_HEAD +
       '<div class="rx-list">' + rx + '</div>' +
       '<div class="collection"><div class="collection-head">만난 칭호 ' + seenTitles.length + '/6</div>' +
       '<div class="collection-chips">' + TITLE_ORDER.map(function (t) {
